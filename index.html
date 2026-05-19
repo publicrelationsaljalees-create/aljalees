@@ -460,8 +460,8 @@ const DEFAULT_CFG = {
   catsLabelEn: 'Main Sections',
   titleSize: 22,
   cardSize: 14,
-  clrPrimary: '#5A3F7A',
-  clrPrimaryMid: '#74539B',
+  clrPrimary: '#6E4FA3',
+  clrPrimaryMid: '#8B6BC7',
   clrAccent: '#CBB8EE',
   clrAccentLight: '#F5F1FC',
   clrBg: '#FFFFFF',
@@ -634,7 +634,7 @@ function applyConfig() {
   r.setProperty('--emergency', cfg.clrEmergency);
   r.setProperty('--text', cfg.clrText);
 
-  if (!document.querySelector('#logoCircle img')) document.getElementById('logoCircle').style.display = 'none';
+  if (!document.querySelector('#logoCircle img')) document.getElementById('logoCircle').textContent = cfg.logoIcon;
   document.getElementById('logoCircle').style.background = `linear-gradient(135deg,${cfg.clrAccent},${cfg.clrAccentLight})`;
   document.getElementById('siteHeader').style.background = `linear-gradient(135deg,${cfg.clrPrimary},${cfg.clrPrimaryMid},${cfg.clrPrimary})`;
   document.getElementById('companyBadge').style.color = cfg.clrAccentLight;
