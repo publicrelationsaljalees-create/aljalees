@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محرك البحث الذكي للحجاج</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #7B4FA3;
+  --primary-mid: #8B5FB5;
+  --accent: #7B4FA3;
+  --accent-light: #A885D0;
+  --bg: #FFFFFF;
+  --text: #333333;
+  --text-mid: #555555;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; direction:rtl; }
+
+.header {
+  padding:24px 20px 20px; text-align:center; position:relative;
+  border-bottom:3px solid var(--accent); background:linear-gradient(135deg,var(--primary),var(--primary-mid));
+  overflow:hidden;
+}
+.header::before {
+  content:''; position:absolute; inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.header-titles h1 { font-family:'Amiri',serif; font-size:22px; font-weight:700; line-height:1.3; color:white; }
+.header-titles p { font-size:13px; margin-top:4px; font-weight:300; opacity:0.85; color:rgba(255,255,255,0.9); }
+.company-badge {
+  display:inline-block; border:1px solid rgba(255,255,255,0.3);
+  font-size:12px; padding:4px 14px; border-radius:20px; margin-top:8px;
+  color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.1);
+}
+
+.lang-toggle { position:absolute; top:16px; left:16px; display:flex; gap:4px; }
+.lang-btn {
+  padding:5px 12px; border:1px solid rgba(255,255,255,0.3); background:transparent;
+  border-radius:16px; font-size:12px; cursor:pointer; font-family:'Tajawal',sans-serif; 
+  transition:all 0.2s; color:rgba(255,255,255,0.7);
+}
+.lang-btn.active { font-weight:700; border-color:white; background:rgba(255,255,255,0.2); color:white; }
+
+.search-section { padding:20px 16px; border-bottom:2px solid #E0E0E0; background:white; }
+.search-box { position:relative; max-width:600px; margin:0 auto; }
+.search-input {
+  width:100%; padding:14px 50px 14px 50px; border:2px solid var(--accent);
+  border-radius:50px; font-size:15px; font-family:'Tajawal',sans-serif;
+  background:white; outline:none; color:var(--text); transition:box-shadow 0.2s; direction:rtl;
+}
+.search-input:focus { box-shadow:0 0 0 3px rgba(123,79,163,0.15); border-color:var(--primary); }
+.search-icon { position:absolute; right:16px; top:50%; transform:translateY(-50%); font-size:20px; color:var(--accent); }
+.search-clear {
+  position:absolute; left:16px; top:50%; transform:translateY(-50%);
+  font-size:18px; color:#999; cursor:pointer; display:none; background:none; border:none;
+}
+.suggestions-box {
+  position:absolute; top:calc(100% + 6px); right:0; left:0;
+  background:white; border:1.5px solid var(--accent); border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.12); z-index:100; overflow:hidden; display:none;
+}
+.suggestion-item {
+  padding:12px 18px; cursor:pointer; font-size:14px; color:var(--text);
+  display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid #f0f0f0; transition:background 0.15s;
+}
+.suggestion-item:last-child { border-bottom:none; }
+.suggestion-item:hover { background:#F5F5F5; }
+.suggestion-item .s-cat { font-size:11px; color:var(--primary); font-weight:600; margin-right:auto; }
+
+.main { padding:16px; max-width:700px; margin:0 auto; background:white; }
+.section-label { font-size:13px; font-weight:600; margin-bottom:10px; margin-top:16px; display:flex; align-items:center; gap:8px; letter-spacing:0.5px; color:var(--primary); }
+.section-label::after { content:''; flex:1; height:1px; background:rgba(123,79,163,0.2); }
+
+.categories-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.cat-card {
+  background:white; border-radius:16px; overflow:hidden; cursor:pointer;
+  transition:transform 0.2s, box-shadow 0.2s, border-color 0.2s; 
+  border:1.5px solid #E0E0E0;
+}
+.cat-card:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(123,79,163,0.12); border-color:var(--accent); }
+.cat-header { padding:14px 14px 10px; display:flex; align-items:center; gap:10px; }
+.cat-icon-wrap { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.cat-title { font-size:14px; font-weight:700; color:var(--primary); line-height:1.3; }
+.cat-subtitle { font-size:11px; color:#999; margin-top:2px; }
+.cat-preview { background:#FAFAFA; padding:8px 14px 12px; font-size:12px; color:#666; line-height:1.6; border-top:1px solid #E0E0E0; }
+
+.detail-panel { display:none; background:white; border-radius:20px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.1); }
+.detail-panel.active { display:block; }
+.detail-top {
+  padding:16px; display:flex; align-items:center; gap:12px;
+  border-bottom:2px solid #E0E0E0;
+}
+.back-btn {
+  border:none; padding:8px 14px; border-radius:20px;
+  font-size:13px; cursor:pointer; font-family:'Tajawal',sans-serif; font-weight:600;
+  background:var(--primary); color:white;
+}
+.detail-top h2 { font-size:18px; font-weight:800; color:var(--primary); }
+.detail-body { padding:16px; background:white; }
+.info-item {
+  background:#FAFAFA; border-radius:14px; padding:14px 16px; margin-bottom:10px;
+  border-right:4px solid var(--accent); box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.info-item h3 { font-size:14px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:8px; color:var(--primary); }
+.info-item p { font-size:13px; color:var(--text-mid); line-height:1.8; white-space:pre-line; }
+
+.footer { text-align:center; padding:20px; font-size:11px; color:#999; background:white; }
+
+.loading { text-align:center; padding:40px 20px; color:var(--primary); }
+.loading-spinner { display:inline-block; width:40px; height:40px; border:4px solid #E0E0E0; border-top:4px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+
+body.en { direction:ltr; }
+body.en .search-input { direction:ltr; }
+body.en .info-item { border-right:none; border-left:4px solid var(--accent); }
+body.en .suggestion-item .s-cat { margin-right:0; margin-left:auto; }
+body.en .lang-toggle { left:auto; right:16px; }
+
+@media(max-width:400px) { .categories-grid { grid-template-columns:1fr; } .header-titles h1 { font-size:18px; } }
+</style>
+</head>
+<body>
+
+<div class="header" id="siteHeader">
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('ar',event)">عربي</button>
+    <button class="lang-btn" onclick="setLang('en',event)">EN</button>
+  </div>
+  <div class="header-titles">
+    <h1 id="mainTitle">محرك البحث الذكي<br>لحجاج بيت الله الحرام</h1>
+    <p id="mainSubtitle">مرجعك الموثوق في رحلة الحج</p>
+  </div>
+  <div class="company-badge" id="companyBadge">🌿 شركة الجليس الصالح</div>
+</div>
+
+<div class="search-section" id="searchSection">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" type="text" placeholder="ابحث عن أي معلومة..." oninput="handleSearch(this.value)">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+    <div class="suggestions-box" id="suggestionsBox"></div>
+  </div>
+</div>
+
+<div class="main">
+  <div id="homeView">
+    <div class="section-label" id="catsLabel">الأقسام الرئيسية</div>
+    <div class="categories-grid" id="catsGrid">
+      <div class="loading"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-top">
+      <button class="back-btn" id="backBtn" onclick="goBack()">↩ رجوع</button>
+      <h2 id="detailTitle"></h2>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
+<div class="footer" id="siteFooter">© شركة الجليس الصالح لخدمة ضيوف الرحمن</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbx06NBQUOWZsz8VFonEilwQhjMMoB7kGlGldxgxA55x1Hf7sML9NUDFCVAZgPqnk_vw/exec';
+
+let categories = {};
+let allItems = [];
+let currentLang = 'ar';
+let currentCat = null;
+
+async function loadDataFromAPI() {
+  try {
+    const response = await fetch(API_URL);
+    const items = await response.json();
+    
+    categories = {};
+    allItems = [];
+    
+    const catColors = {
+      'housing': '#E8F5E9',
+      'masha3er': '#FFF3E0',
+      'manasek': '#E3F2FD',
+      'emergency': '#FCE4EC',
+      'hady': '#F3E5F5',
+      'transport': '#E0F7FA',
+      'contact': '#FFF8E1',
+      'instructions': '#E8EAF6'
+    };
+    
+    items.forEach(item => {
+      const cat = item.category;
+      if (!categories[cat]) {
+        categories[cat] = {
+          icon: item.icon || '📋',
+          bgColor: catColors[cat] || '#E8EAF6',
+          titleAr: cat,
+          items: []
+        };
+      }
+      
+      categories[cat].items.push({
+        id: `${cat}_${item.title}`,
+        icon: item.icon || '',
+        labelAr: item.title,
+        value: item.value || ''
+      });
+      
+      allItems.push({
+        catKey: cat,
+        catTitle: item.title,
+        icon: item.icon || '',
+        label: item.title,
+        value: item.value || ''
+      });
+    });
+    
+    renderCatsGrid();
+  } catch (error) {
+    console.error('خطأ:', error);
+    document.getElementById('catsGrid').innerHTML = '<div class="loading" style="grid-column:1/-1;">❌ خطأ في تحميل البيانات</div>';
+  }
+}
+
+function renderCatsGrid() {
+  const grid = document.getElementById('catsGrid');
+  const catKeys = Object.keys(categories);
+  
+  if (catKeys.length === 0) {
+    grid.innerHTML = '<div class="loading" style="grid-column:1/-1;">جاري تحميل البيانات...</div>';
+    return;
+  }
+  
+  grid.innerHTML = catKeys.map(k => {
+    const c = categories[k];
+    const preview = c.items.slice(0, 3).map(i => i.labelAr).join(' • ');
+    
+    return `
+    <div class="cat-card" onclick="openCategory('${k}')">
+      <div class="cat-header">
+        <div class="cat-icon-wrap" style="background:${c.bgColor}">${c.icon}</div>
+        <div>
+          <div class="cat-title">${c.titleAr}</div>
+          <div class="cat-subtitle">${c.items.length} عنصر</div>
+        </div>
+      </div>
+      <div class="cat-preview">${preview}</div>
+    </div>`;
+  }).join('');
+}
+
+function openCategory(key) {
+  currentCat = key;
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('detailPanel').classList.add('active');
+  const c = categories[key];
+  document.getElementById('detailTitle').textContent = c.icon + ' ' + c.titleAr;
+  
+  const body = document.getElementById('detailBody');
+  body.innerHTML = c.items.map(item => `
+    <div class="info-item">
+      <h3><span>${item.icon}</span> ${item.labelAr}</h3>
+      <p>${item.value}</p>
+    </div>`).join('');
+  
+  // إغلاق قائمة البحث ومسح نص البحث
+  document.getElementById('suggestionsBox').style.display = 'none';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+}
+
+function goBack() {
+  document.getElementById('detailPanel').classList.remove('active');
+  document.getElementById('homeView').style.display = '';
+  currentCat = null;
+}
+
+function handleSearch(val) {
+  document.getElementById('searchClear').style.display = val ? 'block' : 'none';
+  const box = document.getElementById('suggestionsBox');
+  if (!val.trim()) { box.style.display = 'none'; return; }
+  
+  const results = allItems.filter(i => 
+    i.label.includes(val) || i.value.includes(val) || i.catTitle.includes(val)
+  );
+  
+  if (results.length) {
+    box.style.display = 'block';
+    box.innerHTML = results.slice(0,7).map(r => `
+      <div class="suggestion-item" onclick="openCategory('${r.catKey}')">
+        <span>${r.icon}</span>
+        <span>${r.label}</span>
+        <span class="s-cat">${r.catTitle}</span>
+      </div>`).join('');
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  document.getElementById('suggestionsBox').style.display = 'none';
+}
+
+function setLang(lang, e) {
+  currentLang = lang;
+  document.body.classList.toggle('en', lang === 'en');
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  if (e && e.target) e.target.classList.add('active');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-box')) {
+    document.getElementById('suggestionsBox').style.display = 'none';
+  }
+});
+
+loadDataFromAPI();
+</script>
+</body>
+</html>
